@@ -1,0 +1,36 @@
+{
+  "Work": [
+    "Code.exe", "code.exe",
+    "devenv.exe",
+    "pycharm64.exe", "pycharm.exe",
+    "idea64.exe",
+    "sublime_text.exe",
+    "notepad++.exe",
+    "WindowsTerminal.exe", "powershell.exe", "cmd.exe",
+    "python.exe", "python3.exe",
+    "node.exe",
+    "Word.exe", "WINWORD.EXE",
+    "Excel.exe", "EXCEL.EXE",
+    "Notion.exe",
+    "Obsidian.exe",
+    "Adobe Acrobat.exe"
+  ],
+  "Distraction": [
+    "Spotify.exe",
+    "Discord.exe",
+    "telegram.exe",
+    "WhatsApp.exe",
+    "Steam.exe",
+    "EpicGamesLauncher.exe",
+    "Minecraft.exe",
+    "minecraft.exe",
+    "RobloxPlayerBeta.exe"
+  ],
+  "Mixed": [
+    "chrome.exe",
+    "msedge.exe",
+    "firefox.exe",
+    "brave.exe",
+    "opera.exe"
+  ]
+}
