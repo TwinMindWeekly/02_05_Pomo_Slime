@@ -1,8 +1,8 @@
-# Roadmap: Focus Spirit
+# Roadmap: PomoSlime
 
 ## Overview
 
-Focus Spirit sẽ được phát triển qua 3 giai đoạn chính: Thiết lập nền tảng giám sát hệ thống, tích hợp bộ não AI để phản hồi "cà khịa", và cuối cùng là hoàn thiện hệ thống lưu trữ tiến trình/tiến hóa của Pet.
+PomoSlime sẽ được phát triển qua 3 giai đoạn chính: Thiết lập nền tảng giám sát hệ thống, tích hợp bộ não AI để phản hồi "cà khịa", và cuối cùng là hoàn thiện hệ thống lưu trữ tiến trình/tiến hóa của bé Slime.
 
 ## Phases
 

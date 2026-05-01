@@ -1,4 +1,4 @@
-# Requirements: Focus Spirit
+# Requirements: PomoSlime
 
 **Defined:** 2026-05-01
 **Core Value:** Duy trì sự tập trung của người dùng thông qua sự gắn kết cảm xúc với desktop pet và phản hồi thông minh từ AI.

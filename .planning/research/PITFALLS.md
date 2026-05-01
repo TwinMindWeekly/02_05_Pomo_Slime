@@ -27,5 +27,5 @@
 - **Mitigation**: Cài đặt mouse drag events thủ công. Kiểm tra transparency flags kỹ trên Windows 10/11.
 
 ---
-*Pitfalls research for: Focus Spirit*
+*Pitfalls research for: PomoSlime*
 *Researched: 2026-05-01*

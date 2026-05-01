@@ -1,8 +1,8 @@
-# Focus Spirit
+# PomoSlime
 
 ## What This Is
 
-Focus Spirit là một ứng dụng desktop pet thông minh, đóng vai trò là một "Thực thể tập trung" sống trong máy tính của người dùng (tên là "Tính"). Nhiệm vụ của nó là giám sát các tiến trình đang chạy và điều chỉnh hành vi, tâm trạng của mình để giúp người dùng duy trì trạng thái "Deep Work" thông qua các tương tác vui nhộn, thông minh và "cà khịa" tinh tế.
+PomoSlime là một ứng dụng desktop pet thông minh với nhân vật chính là một chú Slime dễ thương. Nó đóng vai trò là một "Thực thể tập trung" sống trong máy tính của người dùng (tên là "Tính"). Nhiệm vụ của nó là giám sát các tiến trình đang chạy và điều chỉnh hành vi, tâm trạng của mình để giúp người dùng duy trì trạng thái "Deep Work" thông qua các tương tác vui nhộn, thông minh và "cà khịa" tinh tế.
 
 ## Core Value
 

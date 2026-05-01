@@ -6,7 +6,7 @@
 
 ## Core Features
 
-1. **Thực thể tập trung (Focus Spirit)**: Nhân vật 2D luôn hiện diện, thay đổi cảm xúc theo hoạt động của người dùng.
+1. **Bé PomoSlime**: Nhân vật Slime 2D dễ thương luôn hiện diện, thay đổi cảm xúc theo hoạt động của người dùng.
 2. **Giám sát thời gian thực**: Tự động nhận diện ứng dụng đang làm việc hay giải trí.
 3. **Phản hồi AI Witty**: Những câu thoại "cà khịa" thông minh, súc tích, mang hơi hướng tương lai.
 4. **Hệ thống Energy & Evolution**: Người dùng tập trung càng lâu, Pet càng có nhiều năng lượng và tiến hóa ngoại hình.
@@ -19,5 +19,5 @@
 - Widget mini task list đi kèm.
 
 ---
-*Features research for: Focus Spirit*
+*Features research for: PomoSlime*
 *Researched: 2026-05-01*

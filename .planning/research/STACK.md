@@ -68,5 +68,5 @@ pip install groq google-generativeai
 - StackOverflow — Foreground window monitoring patterns.
 
 ---
-*Stack research for: Focus Spirit*
+*Stack research for: PomoSlime*
 *Researched: 2026-05-01*

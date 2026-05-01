@@ -6,7 +6,7 @@
 
 ## Proposed Architecture
 
-Focus Spirit sẽ hoạt động theo mô hình **Hybrid Event-Polling**:
+PomoSlime sẽ hoạt động theo mô hình **Hybrid Event-Polling**:
 - **Polling**: Một luồng nền (Background Thread) liên tục kiểm tra cửa sổ foreground mỗi X giây (ví dụ 5s).
 - **Event-driven**: UI của PyQt6 cập nhật dựa trên tín hiệu (Signals) từ luồng giám sát.
 
@@ -62,5 +62,5 @@ Sử dụng các flags:
 ```
 
 ---
-*Architecture research for: Focus Spirit*
+*Architecture research for: PomoSlime*
 *Researched: 2026-05-01*
