@@ -67,6 +67,11 @@ class PetWindow(QWidget):
         self.anim_timer = QTimer(self)
         self.anim_timer.timeout.connect(self._update_animation)
         
+        # Biến điều khiển nhịp điệu animation
+        self._idle_wait_timer = QTimer(self)
+        self._idle_wait_timer.setSingleShot(True)
+        self._idle_wait_timer.timeout.connect(lambda: self.anim_timer.start())
+        
         # Hẹn giờ kiểm tra Idle (Sleep mode)
         self.idle_timer = QTimer(self)
         self.idle_timer.timeout.connect(self._check_system_idle)
@@ -191,13 +196,31 @@ class PetWindow(QWidget):
         self.sprite_label.setPixmap(scaled_pixmap)
         
         # Chuyển frame tiếp theo
-        self.current_frame = (self.current_frame + 1) % max_frames
+        next_frame = self.current_frame + 1
+        
+        # Logic đặc biệt cho Idle (Nhún xong nghỉ 30s)
+        if self.current_anim == "Idle" and next_frame >= max_frames:
+            self.current_frame = 0
+            self.anim_timer.stop()
+            self._idle_wait_timer.start(30000) # Nghỉ 30s
+            return
+
+        # Logic đặc biệt cho Sleep (Dừng ở frame cuối)
+        if self.current_anim == "Sleep" and next_frame >= max_frames:
+            self.current_frame = max_frames - 1 # Giữ ở frame cuối
+            self.anim_timer.stop()
+            return
+
+        self.current_frame = next_frame % max_frames
 
     def _set_anim(self, state: str):
         """Thay đổi trạng thái animation."""
         if state in ANIMATION_CONFIG and self.current_anim != state:
             self.current_anim = state
             self.current_frame = 0
+            self._idle_wait_timer.stop()
+            if not self.anim_timer.isActive():
+                self.anim_timer.start()
 
     # ---- Public: Update từ AI ----
 
@@ -266,16 +289,14 @@ class PetWindow(QWidget):
         millis = win32api.GetTickCount() - win32api.GetLastInputInfo()
         idle_seconds = millis / 1000
         
-        if idle_seconds > 300: # 5 phút không chạm máy
+        if idle_seconds > 60: # 1 phút không chạm máy
             if self.current_anim != "Sleep":
                 self._set_anim("Sleep")
-                # Có thể hiện bubble nhẹ nhàng
-                self.bubble_label.setText("Khò khò... Tính đi đâu rồi? 💤")
-                self.bubble_label.show()
+                self.update_mood("Sleep", "Khò khò... Tính đi đâu rồi? 💤", False)
         elif self.current_anim == "Sleep":
             # Nếu vừa thức dậy
-            self._set_anim("Idle")
-            self.bubble_label.hide()
+            self.update_mood("Happy", "A! Tính đã quay lại! Chào mừng bạn! ✨", True)
+            self._set_anim("Break")
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
