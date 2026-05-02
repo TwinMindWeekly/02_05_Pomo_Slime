@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import QApplication
 from ui.pet_window import PetWindow
 from monitor.monitor_engine import MonitorEngine
 from brain.brain_handler import BrainHandler
+from data.save_manager import SaveManager
 
 
 def main():
@@ -24,6 +25,12 @@ def main():
         gemini_api_key=os.getenv("GEMINI_API_KEY", "")
     )
 
+    # Khởi tạo Data Layer
+    save_mgr = SaveManager()
+    
+    # Cập nhật UI ban đầu
+    window.update_stats(save_mgr.level, save_mgr.energy, save_mgr.max_energy)
+
     # Khởi tạo Monitor Engine
     monitor = MonitorEngine()
 
@@ -33,8 +40,16 @@ def main():
         response = brain.analyze(process_name, app_type, window_title)
         
         if response:
+            # Cập nhật điểm
+            level_up = save_mgr.add_energy(response.energy_change)
+
             # Cập nhật UI
-            window.update_mood(response.status, response.message)
+            if level_up:
+                window.update_mood("Evolving", "Tui vừa tiến hóa nè! Đỉnh quá Tính ơi!")
+            else:
+                window.update_mood(response.status, response.message)
+            
+            window.update_stats(save_mgr.level, save_mgr.energy, save_mgr.max_energy)
             print(f"[Slime] {response.status} | {response.message} | Energy: {response.energy_change:+d}")
 
     # Kết nối tín hiệu

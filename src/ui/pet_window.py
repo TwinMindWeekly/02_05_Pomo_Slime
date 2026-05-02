@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QLabel, QMenu, QApplication
+from PyQt6.QtWidgets import QWidget, QLabel, QMenu, QApplication, QProgressBar
 from PyQt6.QtCore import Qt, QPoint, QTimer
 from PyQt6.QtGui import QAction
 
@@ -75,7 +75,35 @@ class PetWindow(QWidget):
         self.sprite_label.setStyleSheet("font-size: 80px; background: transparent;")
         self.sprite_label.setGeometry(0, 0, self.WINDOW_SIZE, self.WINDOW_SIZE)
 
+        # ---- Energy Bar ----
+        self.energy_bar = QProgressBar(self)
+        self.energy_bar.setGeometry(10, self.WINDOW_SIZE - 20, self.WINDOW_SIZE - 20, 10)
+        self.energy_bar.setTextVisible(False)
+        self.energy_bar.setStyleSheet("""
+            QProgressBar {
+                border: 1px solid #45475a;
+                border-radius: 5px;
+                background-color: #1e1e2e;
+            }
+            QProgressBar::chunk {
+                background-color: #a6e3a1; /* Xanh lá */
+                border-radius: 4px;
+            }
+        """)
+
+        # ---- Level Label ----
+        self.level_label = QLabel("Lv.1", self)
+        self.level_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.level_label.setStyleSheet("color: #f9e2af; font-weight: bold; font-size: 12px; background: transparent;")
+        self.level_label.setGeometry(0, self.WINDOW_SIZE - 40, self.WINDOW_SIZE, 20)
+
     # ---- Public: Update từ AI ----
+
+    def update_stats(self, level: int, energy: int, max_energy: int):
+        """Cập nhật thanh năng lượng và cấp độ."""
+        self.level_label.setText(f"Lv.{level}")
+        self.energy_bar.setMaximum(max_energy)
+        self.energy_bar.setValue(energy)
 
     def update_mood(self, status: str, message: str):
         """
