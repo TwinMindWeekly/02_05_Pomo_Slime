@@ -17,7 +17,7 @@ class SlimeResponse:
     @classmethod
     def default(cls) -> "SlimeResponse":
         """Phản hồi mặc định khi AI không khả dụng hoặc lỗi."""
-        return cls(status="Sad", message="Tôi đang ngủ gật một chút...", energy_change=0)
+        return cls(status="Sad", message="Bé đang buồn ngủ xíu, chờ xíu nha...", energy_change=0)
 
     def __repr__(self):
         return f"SlimeResponse(status={self.status}, energy={self.energy_change:+d}, msg={self.message!r})"
