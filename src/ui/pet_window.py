@@ -127,18 +127,17 @@ class PetWindow(QWidget):
         self.sprite_label.setStyleSheet("background: transparent;")
         self.sprite_label.setGeometry(0, 70, self.WINDOW_WIDTH, self.WINDOW_WIDTH)
         
-        # ---- Pomodoro Timer Label ----
+        # ---- Pomodoro Timer Label (Di chuyển xuống dưới để không đè bóng thoại) ----
         self.pomo_label = QLabel("", self)
         self.pomo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.pomo_label.setStyleSheet("""
             color: #f38ba8; /* Red */
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
-            background: rgba(30, 30, 46, 180);
-            border-radius: 8px;
-            padding: 2px;
+            background: rgba(30, 30, 46, 150);
+            border-radius: 5px;
         """)
-        self.pomo_label.setGeometry(25, 45, self.WINDOW_WIDTH - 50, 25)
+        self.pomo_label.setGeometry(40, self.WINDOW_HEIGHT - 70, self.WINDOW_WIDTH - 80, 20)
         self.pomo_label.hide()
         
         # Hiển thị frame đầu tiên
