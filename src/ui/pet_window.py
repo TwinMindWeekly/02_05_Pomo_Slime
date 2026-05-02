@@ -1,15 +1,24 @@
 from PyQt6.QtWidgets import QWidget, QLabel, QMenu, QApplication
-from PyQt6.QtCore import Qt, QPoint
+from PyQt6.QtCore import Qt, QPoint, QTimer
 from PyQt6.QtGui import QAction
+
+
+# Sprite map theo trạng thái cảm xúc (emoji placeholder)
+# Phase 3 sẽ thay bằng ảnh PNG thật của bé Slime
+MOOD_SPRITES = {
+    "Happy":    "🟢",   # Xanh lá — vui vẻ, đang tập trung tốt
+    "Sad":      "🔵",   # Xanh dương — buồn, nhớ nhà
+    "Angry":    "🔴",   # Đỏ — tức vì bị xao nhãng
+    "Evolving": "🌟",   # Sao vàng — đang tiến hóa!
+}
 
 
 class PetWindow(QWidget):
     """
     Cửa sổ chính của PomoSlime.
-    - Frameless: Không có viền hay thanh tiêu đề.
-    - Transparent: Nền trong suốt.
-    - Always on Top: Luôn hiện phía trên các cửa sổ khác.
-    - Draggable: Người dùng có thể kéo thả.
+    - Frameless + Transparent + Always on Top + Draggable
+    - Hiển thị Sprite emoji theo mood
+    - Hiển thị Speech Bubble với message từ AI (tự ẩn sau 8 giây)
     """
 
     WINDOW_SIZE = 150  # pixels
@@ -17,12 +26,12 @@ class PetWindow(QWidget):
     def __init__(self):
         super().__init__()
         self._drag_pos = QPoint()
+        self._hide_timer = None
         self._setup_window()
         self._setup_ui()
 
     def _setup_window(self):
         """Thiết lập các thuộc tính cốt lõi của cửa sổ."""
-        # Xóa viền và làm nền trong suốt
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint |
             Qt.WindowType.WindowStaysOnTopHint |
@@ -31,7 +40,7 @@ class PetWindow(QWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setFixedSize(self.WINDOW_SIZE, self.WINDOW_SIZE)
 
-        # Đặt vị trí mặc định: góc dưới bên phải màn hình
+        # Vị trí mặc định: góc dưới bên phải màn hình
         screen = QApplication.primaryScreen().geometry()
         self.move(
             screen.width() - self.WINDOW_SIZE - 20,
@@ -39,12 +48,60 @@ class PetWindow(QWidget):
         )
 
     def _setup_ui(self):
-        """Thiết lập các thành phần UI bên trong cửa sổ."""
-        # Placeholder cho Sprite (sẽ thay bằng ảnh thật ở Phase 2)
-        self.sprite_label = QLabel("🟢", self)
+        """Thiết lập Speech Bubble và Sprite Label."""
+
+        # ---- Speech Bubble (hiện phía trên Sprite) ----
+        self.bubble_label = QLabel("", self)
+        self.bubble_label.setWordWrap(True)
+        self.bubble_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.bubble_label.setStyleSheet("""
+            QLabel {
+                background-color: rgba(30, 30, 46, 220);
+                color: #cdd6f4;
+                border: 1px solid #89b4fa;
+                border-radius: 10px;
+                padding: 6px 10px;
+                font-family: 'Segoe UI', Arial;
+                font-size: 11px;
+                font-weight: 500;
+            }
+        """)
+        self.bubble_label.setGeometry(0, -70, self.WINDOW_SIZE, 65)
+        self.bubble_label.hide()  # Ẩn ban đầu
+
+        # ---- Sprite / Emoji Label ----
+        self.sprite_label = QLabel(MOOD_SPRITES["Happy"], self)
         self.sprite_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.sprite_label.setStyleSheet("font-size: 80px;")
+        self.sprite_label.setStyleSheet("font-size: 80px; background: transparent;")
         self.sprite_label.setGeometry(0, 0, self.WINDOW_SIZE, self.WINDOW_SIZE)
+
+    # ---- Public: Update từ AI ----
+
+    def update_mood(self, status: str, message: str):
+        """
+        Cập nhật Sprite và hiển thị Speech Bubble với message từ AI.
+        Bubble tự ẩn sau 8 giây.
+
+        Args:
+            status: 'Happy' | 'Sad' | 'Angry' | 'Evolving'
+            message: Câu thoại từ BrainHandler
+        """
+        # Đổi Sprite
+        emoji = MOOD_SPRITES.get(status, MOOD_SPRITES["Sad"])
+        self.sprite_label.setText(emoji)
+
+        # Hiển thị Speech Bubble
+        if message:
+            self.bubble_label.setText(message)
+            self.bubble_label.show()
+
+            # Reset và bắt đầu timer tự ẩn (8 giây)
+            if self._hide_timer is not None:
+                self._hide_timer.stop()
+            self._hide_timer = QTimer(self)
+            self._hide_timer.setSingleShot(True)
+            self._hide_timer.timeout.connect(self.bubble_label.hide)
+            self._hide_timer.start(8000)
 
     # ---- Drag Support ----
 
