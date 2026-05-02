@@ -352,6 +352,14 @@ class PetWindow(QWidget):
         self.update_mood("Evolving", "Vào chế độ Focus Mode! Cháy lên Tính ơi!", True)
         self._set_anim("Work")
 
+    def stop_pomodoro(self):
+        """Dừng Pomodoro thủ công."""
+        self.pomo_seconds_left = 0
+        self.pomo_timer.stop()
+        self.pomo_label.hide()
+        self._set_anim("Idle")
+        self.update_mood("Happy", "Đã dừng Pomodoro. Nghỉ ngơi xíu nhé!", True)
+
     def _on_pomo_tick(self):
         self.pomo_seconds_left -= 1
         mins = self.pomo_seconds_left // 60
