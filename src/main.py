@@ -10,6 +10,14 @@ from monitor.monitor_engine import MonitorEngine
 from brain.brain_handler import BrainHandler
 from data.save_manager import SaveManager
 
+def get_weather() -> str:
+    """Lấy thông tin thời tiết hiện tại qua wttr.in."""
+    import urllib.request
+    try:
+        req = urllib.request.Request("https://wttr.in/?format=%C+%t", headers={'User-Agent': 'curl/7.68.0'})
+        return urllib.request.urlopen(req, timeout=2).read().decode('utf-8').strip()
+    except Exception:
+        return "Không rõ thời tiết"
 
 def main():
     """Entry point của PomoSlime."""
@@ -31,9 +39,10 @@ def main():
     # Cập nhật UI ban đầu
     window.update_stats(save_mgr.level, save_mgr.energy, save_mgr.max_energy)
 
-    # Gửi lời chào khởi động
+    # Gửi lời chào khởi động kèm thời tiết
+    weather = get_weather()
     is_first_time = save_mgr.register_startup()
-    startup_title = "Lần đầu trong ngày" if is_first_time else "Mở lại trong ngày"
+    startup_title = f"Lần đầu trong ngày. Thời tiết: {weather}" if is_first_time else f"Mở lại trong ngày. Thời tiết: {weather}"
     
     startup_response = brain.analyze("PomoSlime", "Startup", startup_title)
     if startup_response:
