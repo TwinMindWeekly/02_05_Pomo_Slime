@@ -66,13 +66,17 @@ class PetWindow(QWidget):
         self.current_frame = 0
         self.anim_timer = QTimer(self)
         self.anim_timer.timeout.connect(self._update_animation)
+        
         # Hẹn giờ kiểm tra Idle (Sleep mode)
         self.idle_timer = QTimer(self)
         self.idle_timer.timeout.connect(self._check_system_idle)
-        self.idle_timer.start(10000) # Kiểm tra mỗi 10s
-        
+
         self._setup_window()
         self._setup_ui()
+        
+        # Bắt đầu animation và idle timer sau khi UI đã sẵn sàng
+        self.anim_timer.start(100) # 10 FPS
+        self.idle_timer.start(10000)
         
         # Kết nối tín hiệu
         self.mood_updated.connect(self._do_update_mood)
@@ -164,8 +168,7 @@ class PetWindow(QWidget):
 
     def _update_animation(self):
         """Cắt và hiển thị frame hiện tại từ Sprite Sheet."""
-        if self.sprite_sheet.isNull():
-            self.sprite_label.setText("O_O")
+        if not hasattr(self, 'sprite_label') or self.sprite_sheet.isNull():
             return
 
         config = ANIMATION_CONFIG.get(self.current_anim, ANIMATION_CONFIG["Idle"])
