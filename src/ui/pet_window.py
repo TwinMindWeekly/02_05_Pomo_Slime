@@ -27,7 +27,7 @@ class PetWindow(QWidget):
     """
 
     WINDOW_WIDTH = 150   # pixels
-    WINDOW_HEIGHT = 220  # Bao gồm cả khoảng trống cho bóng thoại
+    WINDOW_HEIGHT = 260  # Tăng lên để chứa bóng thoại dài hơn
 
     # Tín hiệu nội bộ để xử lý cập nhật giao diện từ luồng nền (Thread-safe)
     mood_updated = pyqtSignal(str, str, bool)
@@ -96,7 +96,7 @@ class PetWindow(QWidget):
                 font-weight: 500;
             }
         """)
-        self.bubble_label.setGeometry(0, 0, self.WINDOW_WIDTH, 65)
+        self.bubble_label.setGeometry(0, 0, self.WINDOW_WIDTH, 80) # Tăng chiều cao mặc định
         self.bubble_label.hide()  # Ẩn ban đầu
 
         # ---- Sprite / Animation Label ----
@@ -142,7 +142,7 @@ class PetWindow(QWidget):
         self.level_label = QLabel("Lv.1", self)
         self.level_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.level_label.setStyleSheet("color: #f9e2af; font-weight: bold; font-size: 12px; background: transparent;")
-        self.level_label.setGeometry(0, self.WINDOW_HEIGHT - 40, self.WINDOW_WIDTH, 20)
+        self.level_label.setGeometry(0, self.WINDOW_HEIGHT - 45, self.WINDOW_WIDTH, 20)
 
     def _set_movie(self, gif_path: str):
         """Hàm helper để thay đổi GIF an toàn."""
@@ -186,6 +186,14 @@ class PetWindow(QWidget):
         # Hiển thị Speech Bubble
         if message:
             self.bubble_label.setText(message)
+            self.bubble_label.setFixedWidth(self.WINDOW_WIDTH)
+            self.bubble_label.adjustSize()
+            
+            # Căn chỉnh lại vị trí để luôn nằm trên đầu Slime
+            # (adjustSize có thể làm nó hẹp lại nếu text ngắn, nên ta set lại width)
+            new_height = self.bubble_label.height()
+            self.bubble_label.setGeometry(0, 70 - new_height - 5, self.WINDOW_WIDTH, new_height)
+            
             self.bubble_label.show()
             
             # Phát âm thanh pop

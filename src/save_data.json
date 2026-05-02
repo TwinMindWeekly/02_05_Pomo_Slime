@@ -1,12 +1,12 @@
 {
     "level": 2,
-    "energy": 39,
+    "energy": 86,
     "max_energy_for_next_level": 120,
     "last_opened_date": "2026-05-02",
     "sound_enabled": true,
     "time_stats": {
-        "Work": 0.9999999999999999,
+        "Work": 4.666666666666666,
         "Distraction": 0,
-        "Mixed": 0
+        "Mixed": 0.3333333333333333
     }
 }

@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+save_data.json
+src/save_data.json
+assets/sounds/*.wav
+.gemini/
+.agent/
