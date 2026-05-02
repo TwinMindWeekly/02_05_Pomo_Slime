@@ -198,16 +198,22 @@ class PetWindow(QWidget):
         # Chuyển frame tiếp theo
         next_frame = self.current_frame + 1
         
-        # Logic đặc biệt cho Idle (Nhún xong nghỉ 30s)
+        # Logic cho Idle: Nhún 1 lần rồi nghỉ 30s
         if self.current_anim == "Idle" and next_frame >= max_frames:
             self.current_frame = 0
             self.anim_timer.stop()
             self._idle_wait_timer.start(30000) # Nghỉ 30s
             return
 
-        # Logic đặc biệt cho Sleep (Dừng ở frame cuối)
+        # Logic cho Happy (Break): Nhảy 1 lần rồi quay về Idle
+        if self.current_anim == "Break" and next_frame >= max_frames:
+            self.current_frame = 0
+            self._set_anim("Idle")
+            return
+
+        # Logic cho Sleep: Dừng ở frame cuối
         if self.current_anim == "Sleep" and next_frame >= max_frames:
-            self.current_frame = max_frames - 1 # Giữ ở frame cuối
+            self.current_frame = max_frames - 1
             self.anim_timer.stop()
             return
 
