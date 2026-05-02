@@ -18,7 +18,9 @@ class SaveManager:
             "level": 1,
             "energy": 0,
             "max_energy_for_next_level": 100,
-            "last_opened_date": ""
+            "last_opened_date": "",
+            "sound_enabled": True,
+            "time_stats": {"Work": 0, "Distraction": 0, "Mixed": 0} # Lưu trữ theo phút
         }
         self.load()
 
@@ -32,6 +34,9 @@ class SaveManager:
         
         is_first_time = (last_opened != today_str)
         
+        if is_first_time:
+            self.reset_time_stats() # Khởi tạo lại thống kê cho ngày mới
+
         # Cập nhật ngày mở mới nhất
         self.data["last_opened_date"] = today_str
         self.save()
@@ -90,3 +95,32 @@ class SaveManager:
     @property
     def max_energy(self) -> int:
         return self.data["max_energy_for_next_level"]
+
+    # ---- Phase 5: Productivity Features ----
+
+    @property
+    def sound_enabled(self) -> bool:
+        return self.data.get("sound_enabled", True)
+
+    def set_sound_enabled(self, enabled: bool):
+        self.data["sound_enabled"] = enabled
+        self.save()
+
+    def add_time_stat(self, app_type: str, seconds: int):
+        """Cộng thêm thời gian sử dụng vào thống kê trong ngày (quy đổi sang phút)."""
+        if "time_stats" not in self.data:
+            self.data["time_stats"] = {"Work": 0, "Distraction": 0, "Mixed": 0}
+        
+        minutes = seconds / 60.0
+        if app_type in ["Work", "Distraction", "Mixed"]:
+            self.data["time_stats"][app_type] += minutes
+            self.save()
+
+    def reset_time_stats(self):
+        """Khởi tạo lại thống kê khi qua ngày mới."""
+        self.data["time_stats"] = {"Work": 0, "Distraction": 0, "Mixed": 0}
+        self.save()
+
+    @property
+    def time_stats(self) -> dict:
+        return self.data.get("time_stats", {"Work": 0, "Distraction": 0, "Mixed": 0})

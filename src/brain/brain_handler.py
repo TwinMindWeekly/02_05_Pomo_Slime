@@ -72,22 +72,26 @@ class BrainHandler:
     # ---- Public API ----
 
     def analyze(self, process_name: str, app_type: str,
-                window_title: str, minutes_used: float = 0.0) -> SlimeResponse:
+                window_title: str, minutes_used: float = 0.0, is_pomodoro: bool = False) -> SlimeResponse:
         """
         Phân tích ngữ cảnh và trả về phản hồi SlimeResponse.
         Có rate limiting để bảo vệ free tier quota.
         """
         now = time.time()
         elapsed = now - self._last_call_time
-        if elapsed < self.MIN_CALL_INTERVAL:
-            print(f"[Brain] Rate limit — còn {self.MIN_CALL_INTERVAL - elapsed:.0f}s")
-            return SlimeResponse.default()
+        
+        # Bỏ qua rate limit đối với các sự kiện hệ thống
+        if app_type not in ["Startup", "Report"]:
+            if elapsed < self.MIN_CALL_INTERVAL:
+                print(f"[Brain] Rate limit — còn {self.MIN_CALL_INTERVAL - elapsed:.0f}s")
+                return None
 
         self._last_call_time = now
         user_msg = USER_PROMPT_TEMPLATE.format(
             process_name=process_name,
             app_type=app_type,
             window_title=window_title[:100],
+            is_pomodoro=is_pomodoro,
             minutes_used=round(minutes_used, 1)
         )
 

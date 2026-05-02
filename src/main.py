@@ -16,9 +16,6 @@ def main():
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)  # Không tắt khi đóng window
 
-    # Khởi tạo cửa sổ Pet
-    window = PetWindow()
-
     # Khởi tạo Brain (đọc API key từ env)
     brain = BrainHandler(
         groq_api_key=os.getenv("GROQ_API_KEY", ""),
@@ -27,6 +24,9 @@ def main():
 
     # Khởi tạo Data Layer
     save_mgr = SaveManager()
+
+    # Khởi tạo cửa sổ Pet
+    window = PetWindow(save_mgr=save_mgr, brain=brain)
     
     # Cập nhật UI ban đầu
     window.update_stats(save_mgr.level, save_mgr.energy, save_mgr.max_energy)
@@ -37,15 +37,27 @@ def main():
     
     startup_response = brain.analyze("PomoSlime", "Startup", startup_title)
     if startup_response:
-        window.update_mood(startup_response.status, startup_response.message)
+        window.update_mood(startup_response.status, startup_response.message, save_mgr.sound_enabled)
 
     # Khởi tạo Monitor Engine
     monitor = MonitorEngine()
 
     def on_status_changed(process_name: str, app_type: str, window_title: str):
         print(f"[UI Update] {process_name} → {app_type}")
+        
+        # Cập nhật thời gian sử dụng (Monitor poll mỗi 10s)
+        save_mgr.add_time_stat(app_type, 10)
+        
+        # Kiểm tra trạng thái Pomodoro
+        is_pomo = window.pomo_seconds_left > 0
+        
         # Gọi AI để tạo phản hồi
-        response = brain.analyze(process_name, app_type, window_title)
+        response = brain.analyze(
+            process_name=process_name, 
+            app_type=app_type, 
+            window_title=window_title,
+            is_pomodoro=is_pomo
+        )
         
         if response:
             # Cập nhật điểm
@@ -53,9 +65,9 @@ def main():
 
             # Cập nhật UI
             if level_up:
-                window.update_mood("Evolving", "Tui vừa tiến hóa nè! Đỉnh quá Tính ơi!")
+                window.update_mood("Evolving", "Tui vừa tiến hóa nè! Đỉnh quá Tính ơi!", save_mgr.sound_enabled)
             else:
-                window.update_mood(response.status, response.message)
+                window.update_mood(response.status, response.message, save_mgr.sound_enabled)
             
             window.update_stats(save_mgr.level, save_mgr.energy, save_mgr.max_energy)
             print(f"[Slime] {response.status} | {response.message} | Energy: {response.energy_change:+d}")

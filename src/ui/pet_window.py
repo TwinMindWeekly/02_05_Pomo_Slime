@@ -3,7 +3,7 @@ from PyQt6.QtCore import Qt, QPoint, QTimer, pyqtSignal
 from PyQt6.QtGui import QAction, QMovie
 import os
 from ui.audio_player import AudioPlayer
-from PyQt6.QtGui import QAction
+from ui.settings_window import SettingsWindow
 
 
 # Lấy đường dẫn tuyệt đối tới thư mục assets/sprites
@@ -30,13 +30,22 @@ class PetWindow(QWidget):
     WINDOW_HEIGHT = 220  # Bao gồm cả khoảng trống cho bóng thoại
 
     # Tín hiệu nội bộ để xử lý cập nhật giao diện từ luồng nền (Thread-safe)
-    mood_updated = pyqtSignal(str, str)
+    mood_updated = pyqtSignal(str, str, bool)
     stats_updated = pyqtSignal(int, int, int)
+    pomodoro_ticked = pyqtSignal(int)
 
-    def __init__(self):
+    def __init__(self, save_mgr=None, brain=None):
         super().__init__()
+        self.save_mgr = save_mgr
+        self.brain = brain
+        
         self._drag_pos = QPoint()
         self._hide_timer = None
+        
+        # Biến đếm Pomodoro
+        self.pomo_seconds_left = 0
+        self.pomo_timer = QTimer(self)
+        self.pomo_timer.timeout.connect(self._on_pomo_tick)
         
         # Khởi tạo Audio Player
         self.audio = AudioPlayer()
@@ -96,6 +105,20 @@ class PetWindow(QWidget):
         self.sprite_label.setStyleSheet("background: transparent;")
         self.sprite_label.setGeometry(0, 70, self.WINDOW_WIDTH, self.WINDOW_WIDTH)
         
+        # ---- Pomodoro Timer Label ----
+        self.pomo_label = QLabel("", self)
+        self.pomo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.pomo_label.setStyleSheet("""
+            color: #f38ba8; /* Red */
+            font-size: 16px;
+            font-weight: bold;
+            background: rgba(30, 30, 46, 180);
+            border-radius: 8px;
+            padding: 2px;
+        """)
+        self.pomo_label.setGeometry(25, 45, self.WINDOW_WIDTH - 50, 25)
+        self.pomo_label.hide()
+        
         # Set mặc định là Happy
         self._set_movie(MOOD_SPRITES["Happy"])
 
@@ -137,9 +160,9 @@ class PetWindow(QWidget):
         """Phát tín hiệu cập nhật stats (Thread-safe)."""
         self.stats_updated.emit(level, energy, max_energy)
 
-    def update_mood(self, status: str, message: str):
+    def update_mood(self, status: str, message: str, sound_enabled: bool = True):
         """Phát tín hiệu cập nhật mood (Thread-safe)."""
-        self.mood_updated.emit(status, message)
+        self.mood_updated.emit(status, message, sound_enabled)
 
     def _do_update_stats(self, level: int, energy: int, max_energy: int):
         """Logic cập nhật thanh năng lượng và cấp độ (Chạy trên Main Thread)."""
@@ -147,13 +170,17 @@ class PetWindow(QWidget):
         self.energy_bar.setMaximum(max_energy)
         self.energy_bar.setValue(energy)
 
-    def _do_update_mood(self, status: str, message: str):
+    def _do_update_mood(self, status: str, message: str, sound_enabled: bool):
         """
         Cập nhật Sprite và hiển thị Speech Bubble.
         Chạy trên Main Thread.
         """
-        # Đổi Animation (nếu có Evolving thì ưu tiên)
-        gif_path = MOOD_SPRITES.get(status, MOOD_SPRITES["Sad"])
+        # Đổi Animation (nếu có Evolving thì ưu tiên, nếu đang Pomodoro thì giữ nguyên form)
+        if self.pomo_seconds_left > 0 and status != "Evolving":
+            gif_path = MOOD_SPRITES.get("Evolving") # Dùng form vàng làm Focus Mode
+        else:
+            gif_path = MOOD_SPRITES.get(status, MOOD_SPRITES["Sad"])
+            
         self._set_movie(gif_path)
 
         # Hiển thị Speech Bubble
@@ -163,9 +190,9 @@ class PetWindow(QWidget):
             
             # Phát âm thanh pop
             if status == "Evolving":
-                self.audio.play_level_up()
+                self.audio.play_level_up(sound_enabled)
             else:
-                self.audio.play_pop()
+                self.audio.play_pop(sound_enabled)
 
             # Reset và bắt đầu timer tự ẩn (5 giây)
             if self._hide_timer is not None:
@@ -190,7 +217,7 @@ class PetWindow(QWidget):
                 current_pos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
                 # Khoảng cách giữa lúc nhấn và nhả rất nhỏ => Click
                 if (current_pos - self._drag_pos).manhattanLength() < 5:
-                    self.update_mood("Happy", "Hihi, Tính vuốt ve bé kìa! 🟢")
+                    self.update_mood("Happy", "Hihi, Tính vuốt ve bé kìa! 🟢", True)
 
     def mouseMoveEvent(self, event):
         if event.buttons() == Qt.MouseButton.LeftButton:
@@ -215,8 +242,71 @@ class PetWindow(QWidget):
             }
         """)
 
+        # Bắt đầu Pomodoro
+        pomo_action = QAction("⏱ Bắt đầu Pomodoro (25 phút)", self)
+        pomo_action.triggered.connect(self.start_pomodoro)
+        menu.addAction(pomo_action)
+
+        # Cài đặt
+        settings_action = QAction("⚙️ Cài đặt", self)
+        settings_action.triggered.connect(self.open_settings)
+        menu.addAction(settings_action)
+        
+        # Báo cáo ngày
+        report_action = QAction("📊 Báo cáo cuối ngày", self)
+        report_action.triggered.connect(self.show_daily_report)
+        menu.addAction(report_action)
+        
+        menu.addSeparator()
+
         quit_action = QAction("❌ Thoát PomoSlime", self)
         quit_action.triggered.connect(QApplication.quit)
         menu.addAction(quit_action)
 
         menu.exec(event.globalPos())
+
+    # ---- Phase 5: Productivity Logic ----
+
+    def open_settings(self):
+        if self.save_mgr:
+            dialog = SettingsWindow(self.save_mgr, self)
+            dialog.exec()
+
+    def start_pomodoro(self):
+        self.pomo_seconds_left = 25 * 60  # 25 phút
+        self.pomo_label.show()
+        self.pomo_timer.start(1000)
+        self.update_mood("Evolving", "Vào chế độ Focus Mode! Cháy lên Tính ơi!", True)
+
+    def _on_pomo_tick(self):
+        self.pomo_seconds_left -= 1
+        mins = self.pomo_seconds_left // 60
+        secs = self.pomo_seconds_left % 60
+        self.pomo_label.setText(f"{mins:02d}:{secs:02d}")
+        
+        if self.pomo_seconds_left <= 0:
+            self.pomo_timer.stop()
+            self.pomo_label.hide()
+            self.update_mood("Happy", "Hết giờ Pomodoro rồi! Bạn giỏi lắm, nghỉ xíu đi!", True)
+
+    def show_daily_report(self):
+        if not self.save_mgr or not self.brain:
+            return
+            
+        stats = self.save_mgr.time_stats
+        w_time = int(stats.get("Work", 0))
+        d_time = int(stats.get("Distraction", 0))
+        
+        self.update_mood("Happy", "Đang tổng hợp báo cáo ngày...", False)
+        
+        # Gửi dữ liệu thô cho AI tự viết nhận xét (Chạy trên một thread tạm để tránh đơ app? Tạm thời gọi đồng bộ)
+        QTimer.singleShot(100, lambda: self._fetch_report(w_time, d_time))
+
+    def _fetch_report(self, w_time: int, d_time: int):
+        info_str = f"Work: {w_time} phút, Distraction: {d_time} phút"
+        resp = self.brain.analyze("PomoSlime", "Report", info_str)
+        if resp:
+            # Hiện bubble cực lâu cho báo cáo (15 giây)
+            self._do_update_mood(resp.status, resp.message, self.save_mgr.sound_enabled)
+            if self._hide_timer:
+                self._hide_timer.start(15000)
