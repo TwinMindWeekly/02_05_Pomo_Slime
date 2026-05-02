@@ -20,6 +20,8 @@ class SaveManager:
             "max_energy_for_next_level": 100,
             "last_opened_date": "",
             "sound_enabled": True,
+            "auto_startup": False,
+            "personality": "Tsundere", # Mặc định là Cà khịa
             "time_stats": {"Work": 0, "Distraction": 0, "Mixed": 0} # Lưu trữ theo phút
         }
         self.load()
@@ -124,3 +126,19 @@ class SaveManager:
     @property
     def time_stats(self) -> dict:
         return self.data.get("time_stats", {"Work": 0, "Distraction": 0, "Mixed": 0})
+
+    @property
+    def auto_startup(self) -> bool:
+        return self.data.get("auto_startup", False)
+
+    def set_auto_startup(self, enabled: bool):
+        self.data["auto_startup"] = enabled
+        self.save()
+
+    @property
+    def personality(self) -> str:
+        return self.data.get("personality", "Tsundere")
+
+    def set_personality(self, personality: str):
+        self.data["personality"] = personality
+        self.save()

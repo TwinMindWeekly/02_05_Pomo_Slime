@@ -244,6 +244,29 @@ class PetWindow(QWidget):
         self.energy_bar.setMaximum(max_energy)
         self.energy_bar.setValue(energy)
 
+        # Logic Tiến hóa: Thay đổi Skin theo Level
+        new_skin = "slime_sheet.png"
+        if level >= 20:
+            new_skin = "slime_sheet_gold.png"
+        elif level >= 10:
+            new_skin = "slime_sheet_red.png"
+        elif level >= 5:
+            new_skin = "slime_sheet_blue.png"
+            
+        new_skin_path = os.path.join(SPRITE_DIR, new_skin)
+        
+        # Khởi tạo path nếu chưa có
+        if not hasattr(self, '_current_skin_path'):
+            self._current_skin_path = os.path.join(SPRITE_DIR, "slime_sheet.png")
+
+        # Nếu path khác với hiện tại, tiến hành nạp lại
+        if self._current_skin_path != new_skin_path:
+            if os.path.exists(new_skin_path):
+                self.sprite_sheet = QPixmap(new_skin_path)
+                self._current_skin_path = new_skin_path
+                # Hiệu ứng bubble nhỏ thông báo
+                self.update_mood("Happy", f"✨ Wow! Bé Slime đã tiến hóa lên form mới (Lv.{level})! ✨", True)
+
     def _do_update_mood(self, status: str, message: str, sound_enabled: bool):
         """
         Cập nhật Sprite và hiển thị Speech Bubble.

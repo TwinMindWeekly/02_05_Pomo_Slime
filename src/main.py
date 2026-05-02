@@ -44,7 +44,7 @@ def main():
     is_first_time = save_mgr.register_startup()
     startup_title = f"Lần đầu trong ngày. Thời tiết: {weather}" if is_first_time else f"Mở lại trong ngày. Thời tiết: {weather}"
     
-    startup_response = brain.analyze("PomoSlime", "Startup", startup_title)
+    startup_response = brain.analyze("PomoSlime", "Startup", startup_title, personality=save_mgr.personality)
     if startup_response:
         window.update_mood(startup_response.status, startup_response.message, save_mgr.sound_enabled)
 
@@ -65,7 +65,8 @@ def main():
             process_name=process_name, 
             app_type=app_type, 
             window_title=window_title,
-            is_pomodoro=is_pomo
+            is_pomodoro=is_pomo,
+            personality=save_mgr.personality
         )
         
         if response:

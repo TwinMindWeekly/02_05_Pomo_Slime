@@ -1,12 +1,14 @@
 {
-    "level": 2,
-    "energy": 86,
-    "max_energy_for_next_level": 120,
+    "level": 4,
+    "energy": 93,
+    "max_energy_for_next_level": 172,
     "last_opened_date": "2026-05-02",
     "sound_enabled": true,
+    "auto_startup": false,
+    "personality": "Tsundere",
     "time_stats": {
-        "Work": 4.833333333333333,
-        "Distraction": 0,
-        "Mixed": 0.3333333333333333
+        "Work": 18.66666666666666,
+        "Distraction": 0.9999999999999999,
+        "Mixed": 5.0
     }
 }

@@ -1,7 +1,7 @@
 import json
 import os
 import time
-from brain.prompts import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
+from brain.prompts import get_system_prompt, USER_PROMPT_TEMPLATE
 
 
 class SlimeResponse:
@@ -57,8 +57,7 @@ class BrainHandler:
                 import google.generativeai as genai
                 genai.configure(api_key=gemini_key)
                 self._gemini_model = genai.GenerativeModel(
-                    model_name="gemini-2.0-flash",
-                    system_instruction=SYSTEM_PROMPT
+                    model_name="gemini-2.0-flash"
                 )
                 print("[Brain] ✓ Gemini sẵn sàng (gemini-2.0-flash)")
             except ImportError:
@@ -72,7 +71,8 @@ class BrainHandler:
     # ---- Public API ----
 
     def analyze(self, process_name: str, app_type: str,
-                window_title: str, minutes_used: float = 0.0, is_pomodoro: bool = False) -> SlimeResponse:
+                window_title: str, minutes_used: float = 0.0, is_pomodoro: bool = False, 
+                personality: str = "Tsundere") -> SlimeResponse:
         """
         Phân tích ngữ cảnh và trả về phản hồi SlimeResponse.
         Có rate limiting để bảo vệ free tier quota.
@@ -96,13 +96,15 @@ class BrainHandler:
         )
 
         # Thử Groq → fallback Gemini
+        system_msg = get_system_prompt(personality)
+
         if self._groq_client:
-            resp = self._call_groq(user_msg)
+            resp = self._call_groq(user_msg, system_msg)
             if resp:
                 return resp
 
         if self._gemini_model:
-            resp = self._call_gemini(user_msg)
+            resp = self._call_gemini(user_msg, system_msg)
             if resp:
                 return resp
 
@@ -110,13 +112,13 @@ class BrainHandler:
 
     # ---- Internal ----
 
-    def _call_groq(self, user_message: str) -> "SlimeResponse | None":
+    def _call_groq(self, user_message: str, system_message: str) -> "SlimeResponse | None":
         """Gọi Groq API với llama-3.1-8b-instant (free tier)."""
         try:
             completion = self._groq_client.chat.completions.create(
                 model="llama-3.1-8b-instant",
                 messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "system", "content": system_message},
                     {"role": "user", "content": user_message}
                 ],
                 temperature=0.8,
@@ -129,10 +131,12 @@ class BrainHandler:
             print(f"[Brain] Groq lỗi: {e}")
             return None
 
-    def _call_gemini(self, user_message: str) -> "SlimeResponse | None":
+    def _call_gemini(self, user_message: str, system_message: str) -> "SlimeResponse | None":
         """Gọi Gemini API với gemini-2.0-flash (free tier)."""
         try:
-            result = self._gemini_model.generate_content(user_message)
+            # Gửi system instruction ngay trong prompt hoặc dùng ChatSession
+            full_prompt = f"System Instruction:\n{system_message}\n\nUser Input:\n{user_message}"
+            result = self._gemini_model.generate_content(full_prompt)
             raw = result.text
             return self._parse_response(raw)
         except Exception as e:

@@ -122,6 +122,18 @@ Plans:
 - [x] 07-02: Xây dựng Animation Controller để cắt và phát sprite sheet mượt mà trong PyQt6.
 - [x] 07-03: Tích hợp logic nhận diện trạng thái Idle (Sleep) của hệ thống.
 
+### Phase 8: Hệ sinh thái & Cá nhân hóa (Final Polish) 🟢
+
+**Goal:** Nâng tầm dự án với hệ thống Tiến hóa, Cá nhân hóa AI và Thống kê trực quan.
+**Requirements**: UI-12, UI-13, DATA-04
+**Depends on:** Phase 7
+**Plans:** 3 plans
+
+Plans:
+- [x] 08-01: Tích hợp hệ thống "Tiến hóa" hình ảnh (Skins) theo Level (Green, Blue, Red, Gold).
+- [x] 08-02: Thêm tùy chọn "Chạy cùng Windows" (Auto-startup) và "Cá tính AI" (Tsundere, Motivator, Kind).
+- [x] 08-03: Xây dựng bảng thống kê thời gian làm việc (Visual Analytics) trong Settings.
+
 ---
 *Roadmap defined: 2026-05-01*
 *Last updated: 2026-05-01 after initialization*
