@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QWidget, QLabel, QMenu, QApplication, QProgressBar
-from PyQt6.QtCore import Qt, QPoint, QTimer
+from PyQt6.QtCore import Qt, QPoint, QTimer, pyqtSignal
 from PyQt6.QtGui import QAction
 
 
@@ -23,12 +23,20 @@ class PetWindow(QWidget):
 
     WINDOW_SIZE = 150  # pixels
 
+    # Tín hiệu nội bộ để xử lý cập nhật giao diện từ luồng nền (Thread-safe)
+    mood_updated = pyqtSignal(str, str)
+    stats_updated = pyqtSignal(int, int, int)
+
     def __init__(self):
         super().__init__()
         self._drag_pos = QPoint()
         self._hide_timer = None
         self._setup_window()
         self._setup_ui()
+        
+        # Kết nối tín hiệu
+        self.mood_updated.connect(self._do_update_mood)
+        self.stats_updated.connect(self._do_update_stats)
 
     def _setup_window(self):
         """Thiết lập các thuộc tính cốt lõi của cửa sổ."""
@@ -100,19 +108,23 @@ class PetWindow(QWidget):
     # ---- Public: Update từ AI ----
 
     def update_stats(self, level: int, energy: int, max_energy: int):
-        """Cập nhật thanh năng lượng và cấp độ."""
+        """Phát tín hiệu cập nhật stats (Thread-safe)."""
+        self.stats_updated.emit(level, energy, max_energy)
+
+    def update_mood(self, status: str, message: str):
+        """Phát tín hiệu cập nhật mood (Thread-safe)."""
+        self.mood_updated.emit(status, message)
+
+    def _do_update_stats(self, level: int, energy: int, max_energy: int):
+        """Logic cập nhật thanh năng lượng và cấp độ (Chạy trên Main Thread)."""
         self.level_label.setText(f"Lv.{level}")
         self.energy_bar.setMaximum(max_energy)
         self.energy_bar.setValue(energy)
 
-    def update_mood(self, status: str, message: str):
+    def _do_update_mood(self, status: str, message: str):
         """
-        Cập nhật Sprite và hiển thị Speech Bubble với message từ AI.
-        Bubble tự ẩn sau 8 giây.
-
-        Args:
-            status: 'Happy' | 'Sad' | 'Angry' | 'Evolving'
-            message: Câu thoại từ BrainHandler
+        Cập nhật Sprite và hiển thị Speech Bubble.
+        Chạy trên Main Thread.
         """
         # Đổi Sprite
         emoji = MOOD_SPRITES.get(status, MOOD_SPRITES["Sad"])
@@ -123,13 +135,13 @@ class PetWindow(QWidget):
             self.bubble_label.setText(message)
             self.bubble_label.show()
 
-            # Reset và bắt đầu timer tự ẩn (8 giây)
+            # Reset và bắt đầu timer tự ẩn (5 giây)
             if self._hide_timer is not None:
                 self._hide_timer.stop()
             self._hide_timer = QTimer(self)
             self._hide_timer.setSingleShot(True)
             self._hide_timer.timeout.connect(self.bubble_label.hide)
-            self._hide_timer.start(8000)
+            self._hide_timer.start(5000)
 
     # ---- Drag Support ----
 
