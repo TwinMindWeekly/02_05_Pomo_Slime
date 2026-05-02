@@ -4,7 +4,7 @@ from PyQt6.QtGui import QAction, QMovie, QPixmap, QPainter
 import os
 import win32api
 from ui.audio_player import AudioPlayer
-from ui.settings_window import SettingsWindow
+from .settings_window import SettingsWindow
 
 
 # Lấy đường dẫn tuyệt đối tới thư mục assets/sprites
@@ -37,7 +37,7 @@ class PetWindow(QWidget):
     """
 
     WINDOW_WIDTH = 150   # pixels
-    WINDOW_HEIGHT = 260  # Tăng lên để chứa bóng thoại dài hơn
+    WINDOW_HEIGHT = 320  # Tăng lên để tránh bị cắt bóng thoại ở trên
 
     # Tín hiệu nội bộ để xử lý cập nhật giao diện từ luồng nền (Thread-safe)
     mood_updated = pyqtSignal(str, str, bool)
@@ -130,7 +130,7 @@ class PetWindow(QWidget):
         self.sprite_label = QLabel(self)
         self.sprite_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.sprite_label.setStyleSheet("background: transparent;")
-        self.sprite_label.setGeometry(0, 70, self.WINDOW_WIDTH, self.WINDOW_WIDTH)
+        self.sprite_label.setGeometry(0, 110, self.WINDOW_WIDTH, self.WINDOW_WIDTH)
         
         # ---- Pomodoro Timer Label (Di chuyển xuống dưới để không đè bóng thoại) ----
         self.pomo_label = QLabel("", self)
@@ -291,7 +291,7 @@ class PetWindow(QWidget):
             # Căn chỉnh lại vị trí để luôn nằm trên đầu Slime
             # (adjustSize có thể làm nó hẹp lại nếu text ngắn, nên ta set lại width)
             new_height = self.bubble_label.height()
-            self.bubble_label.setGeometry(0, 70 - new_height - 5, self.WINDOW_WIDTH, new_height)
+            self.bubble_label.setGeometry(0, 110 - new_height - 5, self.WINDOW_WIDTH, new_height)
             
             self.bubble_label.show()
             
@@ -391,9 +391,19 @@ class PetWindow(QWidget):
     # ---- Phase 5: Productivity Logic ----
 
     def open_settings(self):
-        if self.save_mgr:
-            dialog = SettingsWindow(self.save_mgr, self)
-            dialog.exec()
+        """Mở cửa sổ cài đặt nâng cao."""
+        try:
+            if self.save_mgr:
+                # Tạo cửa sổ mới mỗi lần để đảm bảo dữ liệu stats mới nhất được nạp
+                # Không dùng parent để tránh bị lỗi hiển thị trên một số máy
+                self._settings_dialog = SettingsWindow(self.save_mgr, None)
+                self._settings_dialog.show()
+                self._settings_dialog.raise_()
+                self._settings_dialog.activateWindow()
+        except Exception as e:
+            import traceback
+            with open("error_settings.log", "a", encoding="utf-8") as f:
+                f.write(f"Settings UI Error: {str(e)}\n{traceback.format_exc()}\n")
 
     def start_pomodoro(self):
         self.pomo_seconds_left = 25 * 60  # 25 phút

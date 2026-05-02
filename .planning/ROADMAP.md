@@ -12,7 +12,10 @@ PomoSlime sẽ được phát triển qua 3 giai đoạn chính: Thiết lập n
 - [x] **Phase 4: Đồ họa & Âm thanh** - Thay thế Emoji bằng ảnh GIF động và thêm hiệu ứng âm thanh.
 - [x] **Phase 5: Productivity Features** - Tích hợp Pomodoro Timer, Settings UI và Báo cáo ngày.
 - [x] **Phase 6: Contextual Info & UI Polishing** - Nhận diện thời tiết và sửa lỗi hiển thị bóng thoại.
-- [x] **Phase 7: Hệ thống Pet Chuyên nghiệp (Sprite Animation)** - Nâng cấp đồ họa Pet từ GIF sang Sprite Sheet mượt mà và đa dạng trạng thái.
+- [x] Phase 7: Hệ thống Pet Chuyên nghiệp (Sprite Animation) - Nâng cấp đồ họa Pet từ GIF sang Sprite Sheet mượt mà và đa dạng trạng thái.
+- [x] Phase 8: Hệ sinh thái & Cá nhân hóa (Final Polish) - Nâng tầm dự án với hệ thống Tiến hóa, Cá nhân hóa AI và Thống kê trực quan.
+- [x] Phase 9: UI Refinement & Bugfixes - Sửa lỗi hiển thị bóng thoại và nâng cấp trải nghiệm người dùng.
+- [/] Phase 10: Premium UI & Aesthetic Upgrade - Nâng cấp giao diện Settings và hộp thoại thông báo sang phong cách hiện đại, premium.
 
 ## Phase Details
 
@@ -134,6 +137,28 @@ Plans:
 - [x] 08-02: Thêm tùy chọn "Chạy cùng Windows" (Auto-startup) và "Cá tính AI" (Tsundere, Motivator, Kind).
 - [x] 08-03: Xây dựng bảng thống kê thời gian làm việc (Visual Analytics) trong Settings.
 
+### Phase 9: UI Refinement & Bugfixes
+
+**Goal:** Sửa lỗi hiển thị bóng thoại và nâng cấp trải nghiệm người dùng.
+**Requirements**: UI-14, UI-15
+**Depends on:** Phase 8
+**Plans:** 1 plan
+
+Plans:
+- [x] 09-01: Sửa lỗi clipping bóng thoại và tối ưu hóa layout cửa sổ.
+
+### Phase 10: Premium UI & Aesthetic Upgrade
+
+**Goal:** Nâng cấp toàn diện giao diện Settings và các hộp thoại hệ thống theo phong cách hiện đại.
+**Requirements**: UI-16, UI-17, UI-18
+**Depends on:** Phase 9
+**Plans:** 3 plans
+
+Plans:
+- [ ] 10-01: Xây dựng Custom Title Bar và phong cách Frameless cho Settings Window.
+- [ ] 10-02: Triển khai ModernMessageBox để thay thế hoàn toàn QMessageBox mặc định.
+- [ ] 10-03: Nâng cấp đồ họa và hiệu ứng chuyển cảnh (Glassmorphism, Animations) cho giao diện.
+
 ---
 *Roadmap defined: 2026-05-01*
-*Last updated: 2026-05-01 after initialization*
+*Last updated: 2026-05-02 after pivoting to Premium UI*
