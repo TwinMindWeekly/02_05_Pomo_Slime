@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-05-01)
 
 ## Current Position
 
-Phase: 6 of 6 (Contextual Info & UI Polishing)
+Phase: 7 of 7 (Hệ thống Pet Chuyên nghiệp)
 Plan: All completed
-Status: Project Complete
-Last activity: 2026-05-02 — Completed Phase 4, 5, and 6.
+Status: Project Complete (Advanced Version)
+Last activity: 2026-05-02 — Completed Sprite Animation and System Idle detection.
 
 Progress: [██████████] 100%
 
@@ -33,6 +33,7 @@ Progress: [██████████] 100%
 | 4. Đồ họa & Âm thanh | 2 | - | - |
 | 5. Productivity Features | 3 | - | - |
 | 6. Contextual Info & UI Polishing | 2 | - | - |
+| 7. Hệ thống Pet Chuyên nghiệp | 3 | - | - |
 
 **Recent Trend:**
 - Last 5 plans: N/A

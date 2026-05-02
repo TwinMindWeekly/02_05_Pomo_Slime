@@ -12,6 +12,7 @@ PomoSlime sẽ được phát triển qua 3 giai đoạn chính: Thiết lập n
 - [x] **Phase 4: Đồ họa & Âm thanh** - Thay thế Emoji bằng ảnh GIF động và thêm hiệu ứng âm thanh.
 - [x] **Phase 5: Productivity Features** - Tích hợp Pomodoro Timer, Settings UI và Báo cáo ngày.
 - [x] **Phase 6: Contextual Info & UI Polishing** - Nhận diện thời tiết và sửa lỗi hiển thị bóng thoại.
+- [x] **Phase 7: Hệ thống Pet Chuyên nghiệp (Sprite Animation)** - Nâng cấp đồ họa Pet từ GIF sang Sprite Sheet mượt mà và đa dạng trạng thái.
 
 ## Phase Details
 
@@ -70,6 +71,9 @@ Phases execute in numeric order: 1 → 2 → 3
 | 4. Đồ họa & Âm thanh | 2/2 | Completed | 2026-05-02 |
 | 5. Productivity Features | 3/3 | Completed | 2026-05-02 |
 | 6. Contextual Info & UI Polishing | 2/2 | Completed | 2026-05-02 |
+| 7. Hệ thống Pet Chuyên nghiệp | 3/3 | Completed | 2026-05-02 |
+
+
 
 
 ### Phase 4: Đồ họa & Âm thanh
@@ -105,6 +109,18 @@ Plans:
 Plans:
 - [x] 06-01: Tích hợp thông tin thời tiết (wttr.in) vào lời chào khởi động của AI.
 - [x] 06-02: Sửa lỗi hiển thị bóng thoại (dynamic height) để tránh bị cắt chữ.
+
+### Phase 7: Hệ thống Pet Chuyên nghiệp (Sprite Animation)
+
+**Goal:** Thay thế ảnh GIF đơn giản bằng hệ thống Sprite Animation chuyên nghiệp với đa dạng trạng thái (Idle, Work, Break, Sleep).
+**Requirements**: UI-10, UI-11, ANIM-01
+**Depends on:** Phase 6
+**Plans:** 3 plans
+
+Plans:
+- [x] 07-01: Tạo bộ Sprite Sheet (Slime_sprite.png) với các frame cho 4 trạng thái chính.
+- [x] 07-02: Xây dựng Animation Controller để cắt và phát sprite sheet mượt mà trong PyQt6.
+- [x] 07-03: Tích hợp logic nhận diện trạng thái Idle (Sleep) của hệ thống.
 
 ---
 *Roadmap defined: 2026-05-01*

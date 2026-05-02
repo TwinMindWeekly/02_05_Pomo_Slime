@@ -1,7 +1,8 @@
 from PyQt6.QtWidgets import QWidget, QLabel, QMenu, QApplication, QProgressBar
-from PyQt6.QtCore import Qt, QPoint, QTimer, pyqtSignal
-from PyQt6.QtGui import QAction, QMovie
+from PyQt6.QtCore import Qt, QPoint, QTimer, pyqtSignal, QRect
+from PyQt6.QtGui import QAction, QMovie, QPixmap, QPainter
 import os
+import win32api
 from ui.audio_player import AudioPlayer
 from ui.settings_window import SettingsWindow
 
@@ -15,6 +16,15 @@ MOOD_SPRITES = {
     "Sad":      os.path.join(SPRITE_DIR, "sad.gif"),
     "Angry":    os.path.join(SPRITE_DIR, "angry.gif"),
     "Evolving": os.path.join(SPRITE_DIR, "evolving.gif"),
+}
+
+# Cấu hình Sprite Sheet mới (1024x1024, 4x4 grid)
+SPRITE_SHEET_PATH = os.path.join(SPRITE_DIR, "slime_sheet.png")
+ANIMATION_CONFIG = {
+    "Idle":     {"row": 0, "frames": 4},
+    "Work":     {"row": 1, "frames": 4},
+    "Break":    {"row": 2, "frames": 4},
+    "Sleep":    {"row": 3, "frames": 4},
 }
 
 
@@ -50,9 +60,17 @@ class PetWindow(QWidget):
         # Khởi tạo Audio Player
         self.audio = AudioPlayer()
         
-        # Movie hiện tại
-        self.current_movie = None
-
+        # Khởi tạo Sprite Animation
+        self.sprite_sheet = QPixmap(SPRITE_SHEET_PATH)
+        self.current_anim = "Idle"
+        self.current_frame = 0
+        self.anim_timer = QTimer(self)
+        self.anim_timer.timeout.connect(self._update_animation)
+        # Hẹn giờ kiểm tra Idle (Sleep mode)
+        self.idle_timer = QTimer(self)
+        self.idle_timer.timeout.connect(self._check_system_idle)
+        self.idle_timer.start(10000) # Kiểm tra mỗi 10s
+        
         self._setup_window()
         self._setup_ui()
         
@@ -119,8 +137,8 @@ class PetWindow(QWidget):
         self.pomo_label.setGeometry(25, 45, self.WINDOW_WIDTH - 50, 25)
         self.pomo_label.hide()
         
-        # Set mặc định là Happy
-        self._set_movie(MOOD_SPRITES["Happy"])
+        # Hiển thị frame đầu tiên
+        self._update_animation()
 
         # ---- Energy Bar ----
         self.energy_bar = QProgressBar(self)
@@ -144,15 +162,40 @@ class PetWindow(QWidget):
         self.level_label.setStyleSheet("color: #f9e2af; font-weight: bold; font-size: 12px; background: transparent;")
         self.level_label.setGeometry(0, self.WINDOW_HEIGHT - 45, self.WINDOW_WIDTH, 20)
 
-    def _set_movie(self, gif_path: str):
-        """Hàm helper để thay đổi GIF an toàn."""
-        if os.path.exists(gif_path):
-            movie = QMovie(gif_path)
-            self.sprite_label.setMovie(movie)
-            movie.start()
-            self.current_movie = movie
-        else:
-            self.sprite_label.setText("O_O") # Fallback nếu file lỗi
+    def _update_animation(self):
+        """Cắt và hiển thị frame hiện tại từ Sprite Sheet."""
+        if self.sprite_sheet.isNull():
+            self.sprite_label.setText("O_O")
+            return
+
+        config = ANIMATION_CONFIG.get(self.current_anim, ANIMATION_CONFIG["Idle"])
+        row = config["row"]
+        max_frames = config["frames"]
+        
+        # Kích thước frame (giả sử 256x256 từ 1024x1024 sheet)
+        frame_size = 256
+        x = self.current_frame * frame_size
+        y = row * frame_size
+        
+        # Cắt frame
+        target_pixmap = self.sprite_sheet.copy(QRect(x, y, frame_size, frame_size))
+        # Scale về kích thước UI
+        scaled_pixmap = target_pixmap.scaled(
+            self.WINDOW_WIDTH, self.WINDOW_WIDTH, 
+            Qt.AspectRatioMode.KeepAspectRatio, 
+            Qt.TransformationMode.SmoothTransformation
+        )
+        
+        self.sprite_label.setPixmap(scaled_pixmap)
+        
+        # Chuyển frame tiếp theo
+        self.current_frame = (self.current_frame + 1) % max_frames
+
+    def _set_anim(self, state: str):
+        """Thay đổi trạng thái animation."""
+        if state in ANIMATION_CONFIG and self.current_anim != state:
+            self.current_anim = state
+            self.current_frame = 0
 
     # ---- Public: Update từ AI ----
 
@@ -175,13 +218,15 @@ class PetWindow(QWidget):
         Cập nhật Sprite và hiển thị Speech Bubble.
         Chạy trên Main Thread.
         """
-        # Đổi Animation (nếu có Evolving thì ưu tiên, nếu đang Pomodoro thì giữ nguyên form)
-        if self.pomo_seconds_left > 0 and status != "Evolving":
-            gif_path = MOOD_SPRITES.get("Evolving") # Dùng form vàng làm Focus Mode
+        # Đổi Animation theo trạng thái
+        if self.pomo_seconds_left > 0:
+            self._set_anim("Work")
+        elif status == "Happy":
+            self._set_anim("Break")
+        elif status == "Sleep":
+            self._set_anim("Sleep")
         else:
-            gif_path = MOOD_SPRITES.get(status, MOOD_SPRITES["Sad"])
-            
-        self._set_movie(gif_path)
+            self._set_anim("Idle")
 
         # Hiển thị Speech Bubble
         if message:
@@ -210,7 +255,25 @@ class PetWindow(QWidget):
             self._hide_timer.timeout.connect(self.bubble_label.hide)
             self._hide_timer.start(5000)
 
-    # ---- Drag Support ----
+    def _check_system_idle(self):
+        """Kiểm tra thời gian rảnh của hệ thống để chuyển sang trạng thái Sleep."""
+        if self.pomo_seconds_left > 0:
+            return # Đang focus thì không ngủ
+
+        # Tính thời gian idle (milliseconds)
+        millis = win32api.GetTickCount() - win32api.GetLastInputInfo()
+        idle_seconds = millis / 1000
+        
+        if idle_seconds > 300: # 5 phút không chạm máy
+            if self.current_anim != "Sleep":
+                self._set_anim("Sleep")
+                # Có thể hiện bubble nhẹ nhàng
+                self.bubble_label.setText("Khò khò... Tính đi đâu rồi? 💤")
+                self.bubble_label.show()
+        elif self.current_anim == "Sleep":
+            # Nếu vừa thức dậy
+            self._set_anim("Idle")
+            self.bubble_label.hide()
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -285,6 +348,7 @@ class PetWindow(QWidget):
         self.pomo_label.show()
         self.pomo_timer.start(1000)
         self.update_mood("Evolving", "Vào chế độ Focus Mode! Cháy lên Tính ơi!", True)
+        self._set_anim("Work")
 
     def _on_pomo_tick(self):
         self.pomo_seconds_left -= 1
