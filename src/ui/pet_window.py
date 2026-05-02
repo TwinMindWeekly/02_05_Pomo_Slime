@@ -1,15 +1,20 @@
 from PyQt6.QtWidgets import QWidget, QLabel, QMenu, QApplication, QProgressBar
 from PyQt6.QtCore import Qt, QPoint, QTimer, pyqtSignal
+from PyQt6.QtGui import QAction, QMovie
+import os
+from ui.audio_player import AudioPlayer
 from PyQt6.QtGui import QAction
 
 
-# Sprite map theo trạng thái cảm xúc (emoji placeholder)
-# Phase 3 sẽ thay bằng ảnh PNG thật của bé Slime
+# Lấy đường dẫn tuyệt đối tới thư mục assets/sprites
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+SPRITE_DIR = os.path.join(BASE_DIR, "assets", "sprites")
+
 MOOD_SPRITES = {
-    "Happy":    "🟢",   # Xanh lá — vui vẻ, đang tập trung tốt
-    "Sad":      "🔵",   # Xanh dương — buồn, nhớ nhà
-    "Angry":    "🔴",   # Đỏ — tức vì bị xao nhãng
-    "Evolving": "🌟",   # Sao vàng — đang tiến hóa!
+    "Happy":    os.path.join(SPRITE_DIR, "happy.gif"),
+    "Sad":      os.path.join(SPRITE_DIR, "sad.gif"),
+    "Angry":    os.path.join(SPRITE_DIR, "angry.gif"),
+    "Evolving": os.path.join(SPRITE_DIR, "evolving.gif"),
 }
 
 
@@ -32,6 +37,13 @@ class PetWindow(QWidget):
         super().__init__()
         self._drag_pos = QPoint()
         self._hide_timer = None
+        
+        # Khởi tạo Audio Player
+        self.audio = AudioPlayer()
+        
+        # Movie hiện tại
+        self.current_movie = None
+
         self._setup_window()
         self._setup_ui()
         
@@ -78,11 +90,14 @@ class PetWindow(QWidget):
         self.bubble_label.setGeometry(0, 0, self.WINDOW_WIDTH, 65)
         self.bubble_label.hide()  # Ẩn ban đầu
 
-        # ---- Sprite / Emoji Label ----
-        self.sprite_label = QLabel(MOOD_SPRITES["Happy"], self)
+        # ---- Sprite / Animation Label ----
+        self.sprite_label = QLabel(self)
         self.sprite_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.sprite_label.setStyleSheet("font-size: 80px; background: transparent;")
+        self.sprite_label.setStyleSheet("background: transparent;")
         self.sprite_label.setGeometry(0, 70, self.WINDOW_WIDTH, self.WINDOW_WIDTH)
+        
+        # Set mặc định là Happy
+        self._set_movie(MOOD_SPRITES["Happy"])
 
         # ---- Energy Bar ----
         self.energy_bar = QProgressBar(self)
@@ -106,6 +121,16 @@ class PetWindow(QWidget):
         self.level_label.setStyleSheet("color: #f9e2af; font-weight: bold; font-size: 12px; background: transparent;")
         self.level_label.setGeometry(0, self.WINDOW_HEIGHT - 40, self.WINDOW_WIDTH, 20)
 
+    def _set_movie(self, gif_path: str):
+        """Hàm helper để thay đổi GIF an toàn."""
+        if os.path.exists(gif_path):
+            movie = QMovie(gif_path)
+            self.sprite_label.setMovie(movie)
+            movie.start()
+            self.current_movie = movie
+        else:
+            self.sprite_label.setText("O_O") # Fallback nếu file lỗi
+
     # ---- Public: Update từ AI ----
 
     def update_stats(self, level: int, energy: int, max_energy: int):
@@ -127,14 +152,20 @@ class PetWindow(QWidget):
         Cập nhật Sprite và hiển thị Speech Bubble.
         Chạy trên Main Thread.
         """
-        # Đổi Sprite
-        emoji = MOOD_SPRITES.get(status, MOOD_SPRITES["Sad"])
-        self.sprite_label.setText(emoji)
+        # Đổi Animation (nếu có Evolving thì ưu tiên)
+        gif_path = MOOD_SPRITES.get(status, MOOD_SPRITES["Sad"])
+        self._set_movie(gif_path)
 
         # Hiển thị Speech Bubble
         if message:
             self.bubble_label.setText(message)
             self.bubble_label.show()
+            
+            # Phát âm thanh pop
+            if status == "Evolving":
+                self.audio.play_level_up()
+            else:
+                self.audio.play_pop()
 
             # Reset và bắt đầu timer tự ẩn (5 giây)
             if self._hide_timer is not None:
@@ -148,8 +179,18 @@ class PetWindow(QWidget):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
+            # Ghi nhận vị trí kéo thả
             self._drag_pos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
             event.accept()
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            # Nếu người dùng chỉ click (không di chuyển chuột nhiều), coi đó là vuốt ve
+            if hasattr(self, '_drag_pos'):
+                current_pos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+                # Khoảng cách giữa lúc nhấn và nhả rất nhỏ => Click
+                if (current_pos - self._drag_pos).manhattanLength() < 5:
+                    self.update_mood("Happy", "Hihi, Tính vuốt ve bé kìa! 🟢")
 
     def mouseMoveEvent(self, event):
         if event.buttons() == Qt.MouseButton.LeftButton:

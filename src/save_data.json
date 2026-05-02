@@ -1,5 +1,6 @@
 {
     "level": 1,
-    "energy": 50,
-    "max_energy_for_next_level": 100
+    "energy": 58,
+    "max_energy_for_next_level": 100,
+    "last_opened_date": "2026-05-02"
 }
