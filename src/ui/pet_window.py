@@ -21,7 +21,8 @@ class PetWindow(QWidget):
     - Hiển thị Speech Bubble với message từ AI (tự ẩn sau 8 giây)
     """
 
-    WINDOW_SIZE = 150  # pixels
+    WINDOW_WIDTH = 150   # pixels
+    WINDOW_HEIGHT = 220  # Bao gồm cả khoảng trống cho bóng thoại
 
     # Tín hiệu nội bộ để xử lý cập nhật giao diện từ luồng nền (Thread-safe)
     mood_updated = pyqtSignal(str, str)
@@ -46,13 +47,13 @@ class PetWindow(QWidget):
             Qt.WindowType.Tool  # Ẩn khỏi Taskbar
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setFixedSize(self.WINDOW_SIZE, self.WINDOW_SIZE)
+        self.setFixedSize(self.WINDOW_WIDTH, self.WINDOW_HEIGHT)
 
         # Vị trí mặc định: góc dưới bên phải màn hình
         screen = QApplication.primaryScreen().geometry()
         self.move(
-            screen.width() - self.WINDOW_SIZE - 20,
-            screen.height() - self.WINDOW_SIZE - 60
+            screen.width() - self.WINDOW_WIDTH - 20,
+            screen.height() - self.WINDOW_HEIGHT - 60
         )
 
     def _setup_ui(self):
@@ -74,18 +75,18 @@ class PetWindow(QWidget):
                 font-weight: 500;
             }
         """)
-        self.bubble_label.setGeometry(0, -70, self.WINDOW_SIZE, 65)
+        self.bubble_label.setGeometry(0, 0, self.WINDOW_WIDTH, 65)
         self.bubble_label.hide()  # Ẩn ban đầu
 
         # ---- Sprite / Emoji Label ----
         self.sprite_label = QLabel(MOOD_SPRITES["Happy"], self)
         self.sprite_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.sprite_label.setStyleSheet("font-size: 80px; background: transparent;")
-        self.sprite_label.setGeometry(0, 0, self.WINDOW_SIZE, self.WINDOW_SIZE)
+        self.sprite_label.setGeometry(0, 70, self.WINDOW_WIDTH, self.WINDOW_WIDTH)
 
         # ---- Energy Bar ----
         self.energy_bar = QProgressBar(self)
-        self.energy_bar.setGeometry(10, self.WINDOW_SIZE - 20, self.WINDOW_SIZE - 20, 10)
+        self.energy_bar.setGeometry(10, self.WINDOW_HEIGHT - 20, self.WINDOW_WIDTH - 20, 10)
         self.energy_bar.setTextVisible(False)
         self.energy_bar.setStyleSheet("""
             QProgressBar {
@@ -103,7 +104,7 @@ class PetWindow(QWidget):
         self.level_label = QLabel("Lv.1", self)
         self.level_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.level_label.setStyleSheet("color: #f9e2af; font-weight: bold; font-size: 12px; background: transparent;")
-        self.level_label.setGeometry(0, self.WINDOW_SIZE - 40, self.WINDOW_SIZE, 20)
+        self.level_label.setGeometry(0, self.WINDOW_HEIGHT - 40, self.WINDOW_WIDTH, 20)
 
     # ---- Public: Update từ AI ----
 
