@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import date
 
 class SaveManager:
     """
@@ -16,9 +17,26 @@ class SaveManager:
         self.data = {
             "level": 1,
             "energy": 0,
-            "max_energy_for_next_level": 100
+            "max_energy_for_next_level": 100,
+            "last_opened_date": ""
         }
         self.load()
+
+    def register_startup(self) -> bool:
+        """
+        Kiểm tra xem đây có phải là lần mở app đầu tiên trong ngày không.
+        Trả về True nếu là lần đầu trong ngày, False nếu mở lại trong cùng ngày.
+        """
+        today_str = date.today().isoformat()
+        last_opened = self.data.get("last_opened_date", "")
+        
+        is_first_time = (last_opened != today_str)
+        
+        # Cập nhật ngày mở mới nhất
+        self.data["last_opened_date"] = today_str
+        self.save()
+        
+        return is_first_time
 
     def load(self):
         """Đọc dữ liệu từ file JSON."""

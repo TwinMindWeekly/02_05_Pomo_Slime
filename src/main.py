@@ -31,6 +31,14 @@ def main():
     # Cập nhật UI ban đầu
     window.update_stats(save_mgr.level, save_mgr.energy, save_mgr.max_energy)
 
+    # Gửi lời chào khởi động
+    is_first_time = save_mgr.register_startup()
+    startup_title = "Lần đầu trong ngày" if is_first_time else "Mở lại trong ngày"
+    
+    startup_response = brain.analyze("PomoSlime", "Startup", startup_title)
+    if startup_response:
+        window.update_mood(startup_response.status, startup_response.message)
+
     # Khởi tạo Monitor Engine
     monitor = MonitorEngine()
 
