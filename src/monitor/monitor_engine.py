@@ -33,16 +33,30 @@ class MonitorEngine(QObject):
         # Tải local mapping từ file JSON
         if mapping_path is None:
             base_dir = os.path.dirname(os.path.abspath(__file__))
-            mapping_path = os.path.join(base_dir, "app_mapping.json")
+            self.mapping_path = os.path.join(base_dir, "app_mapping.json")
+        else:
+            self.mapping_path = mapping_path
 
-        with open(mapping_path, "r", encoding="utf-8") as f:
-            self._mapping = json.load(f)
-
-        # Tạo flat lookup dict để tra cứu nhanh O(1): tên_app.lower() → category
+        self._last_mtime = 0
         self._app_lookup: dict[str, str] = {}
-        for category, apps in self._mapping.items():
-            for app in apps:
-                self._app_lookup[app.lower()] = category
+        self._reload_mapping()
+
+    def _reload_mapping(self):
+        """Tải lại file mapping nếu có thay đổi."""
+        try:
+            mtime = os.path.getmtime(self.mapping_path)
+            if mtime > self._last_mtime:
+                self._last_mtime = mtime
+                with open(self.mapping_path, "r", encoding="utf-8") as f:
+                    mapping = json.load(f)
+                
+                self._app_lookup.clear()
+                for category, apps in mapping.items():
+                    for app in apps:
+                        self._app_lookup[app.lower()] = category
+                # print("[Monitor] Đã tải lại app_mapping.json")
+        except Exception as e:
+            print(f"[Monitor] Lỗi tải mapping: {e}")
 
     # ---- Public API ----
 
@@ -96,6 +110,7 @@ class MonitorEngine(QObject):
     def _poll_loop(self):
         """Vòng lặp polling chính chạy trên background thread."""
         while self._running:
+            self._reload_mapping() # Kiểm tra và tải lại JSON nếu file bị sửa
             process_name, window_title = self._get_foreground_process()
 
             # Chỉ phát tín hiệu khi process thực sự thay đổi
